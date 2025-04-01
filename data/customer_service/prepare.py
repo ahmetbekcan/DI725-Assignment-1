@@ -64,7 +64,14 @@ X_train, X_val = X_encoded[:int(n*0.8)], X_encoded[int(n*0.8):]
 y_train, y_val = y_encoded[:int(n*0.8)], y_encoded[int(n*0.8):]
 
 # Save the data to binary files
-np.save("X_train.npy", X_train)
-np.save("X_val.npy", X_val)
-np.save("y_train.npy", y_train)
-np.save("y_val.npy", y_val)
+with open("X_train.bin", "wb") as f:
+    pickle.dump(X_train, f)
+
+with open("X_val.bin", "wb") as f:
+    pickle.dump(X_val, f)
+
+with open("y_train.bin", "wb") as f:
+    pickle.dump(y_train, f)
+
+with open("y_val.bin", "wb") as f:
+    pickle.dump(y_val, f)
