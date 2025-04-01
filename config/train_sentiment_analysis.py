@@ -9,7 +9,7 @@ log_interval = 50  # don't print too often
 # we expect to overfit on this small dataset, so only save when val improves
 always_save_checkpoint = False
 
-wandb_log = True  # override via command line if you like
+wandb_log = False  # override via command line if you like
 wandb_project = 'sentiment-analysis'
 wandb_run_name = 'mini-gpt'
 
