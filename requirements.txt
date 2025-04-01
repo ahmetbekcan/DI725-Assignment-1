@@ -5,3 +5,6 @@ datasets
 tiktoken
 wandb
 tqdm
+pandas
+seaborn
+matplotlib
