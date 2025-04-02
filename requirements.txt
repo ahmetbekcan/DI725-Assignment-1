@@ -8,3 +8,4 @@ tqdm
 pandas
 seaborn
 matplotlib
+scikit-learn

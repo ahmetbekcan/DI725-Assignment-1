@@ -121,7 +121,6 @@ if (sentiment_classifier):
     sentiment_val_iterator = DataLoaderIterator(DataLoader(sentiment_val_dataset, batch_size=batch_size, shuffle=False))
 
 # poor man's data loader
-print("ahmet")
 data_dir = os.path.join('data', dataset)
 def get_batch(split):
     if (sentiment_classifier):
