@@ -188,6 +188,10 @@ class GPT(nn.Module):
 
         if targets is not None:
             # if we are given some desired targets also calculate the loss
+            #compute the average across sequence lenght dimension to reduce the dimensions to (b,n_embd)
+            if (self.config.sentiment_classifier):
+                x = x.mean(dim=1) #(b,n_embd)
+
             logits = self.lm_head(x)
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1), ignore_index=-1)
         else:
