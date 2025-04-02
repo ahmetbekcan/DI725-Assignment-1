@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 import pandas as pd
 import re
+from sklearn.model_selection import train_test_split
 
 
 # Change the current working directory to the script's directory
@@ -13,14 +14,12 @@ os.chdir(script_dir)
 df = pd.read_csv("train.csv")
 test_df = pd.read_csv("test.csv")
 # Get all possible characters
-full_text = "\n".join(df["conversation"]).join(test_df["conversation"])
+full_text = "\n".join(df["conversation"].tolist() + test_df["conversation"].tolist())
 # Build a vocabulary (character-level)
 chars = sorted(list(set(full_text)))  # Get unique characters
+
 stoi = { ch:i for i,ch in enumerate(chars) }  # Char to index map
 itos = { i:ch for i,ch in enumerate(chars) }  # Index to char map
-
-# Shuffle the data
-df = df.sample(frac=1).reset_index(drop=True)
 
 # Function to extract the last 3 customer replies
 def get_customer_replies(conversation):
@@ -59,9 +58,13 @@ X_encoded = np.array(encoded_X, dtype=object)  # X values (customer replies)
 y_encoded = df["encoded_sentiment"].values
 
 # Split into train and validation sets (80% train, 20% validation)
-n = len(X_encoded)
-X_train, X_val = X_encoded[:int(n*0.8)], X_encoded[int(n*0.8):]
-y_train, y_val = y_encoded[:int(n*0.8)], y_encoded[int(n*0.8):]
+X_train, X_val, y_train, y_val = train_test_split(
+    X_encoded, y_encoded, 
+    test_size=0.2,
+    random_state=2299436, 
+    shuffle=True,  # shuffle the data
+    stratify=y_encoded  # ensure class distribution is the same in both sets
+)
 
 # Save the data to binary files
 with open("X_train.bin", "wb") as f:
