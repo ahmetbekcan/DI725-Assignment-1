@@ -25,14 +25,20 @@ itos = { i:ch for i,ch in enumerate(chars) }  # Index to char map
 def get_customer_replies(conversation):
     turns = re.split(r'\r\n\r\n', conversation)  # Split conversation into turns
     customer_replies = [turn.replace("Customer:", "").strip() for turn in turns if turn.startswith("Customer:")]  # Remove "Customer:" and extra spaces
-    last_n_replies = customer_replies[0:-2]  # Get the replies excluding the last 2 replies
+    last_n_replies = customer_replies[0:-1]  # Get the replies excluding the last reply
     return " ".join(last_n_replies)  # Join them into one text block
 
 # Apply function to extract last 3 customer replies
 df["X"] = df["conversation"].apply(lambda x: get_customer_replies(x))
+df = df[df["X"].apply(len) > 0]
+test_df["X"] = test_df["conversation"].apply(lambda x: get_customer_replies(x))
+test_df = test_df[test_df["X"].apply(len) > 0]
+
+
 
 # Keep only the relevant columns (X and customer_sentiment as y)
 df = df[["X", "customer_sentiment"]]
+test_df = test_df[["X", "customer_sentiment"]]
 
 # Function to encode text to integers
 def encode(text):
@@ -44,6 +50,7 @@ def decode(int_list):
 
 # Encode all conversations (X values)
 encoded_X = [encode(text) for text in df["X"]]
+encoded_X_test = [encode(text) for text in test_df["X"]]
 
 # Encode the sentiments (y values)
 sentiment_to_int = {
@@ -52,6 +59,7 @@ sentiment_to_int = {
     'negative': 2
 }
 df["encoded_sentiment"] = df["customer_sentiment"].map(sentiment_to_int)
+test_df["encoded_sentiment"] = test_df["customer_sentiment"].map(sentiment_to_int)
 
 # Convert to numpy arrays
 X_encoded = np.array(encoded_X, dtype=object)  # X values (customer replies)
@@ -78,3 +86,16 @@ with open("y_train.bin", "wb") as f:
 
 with open("y_val.bin", "wb") as f:
     pickle.dump(y_val, f)
+
+X_encoded_test = np.array(encoded_X_test, dtype=object)  # X values (customer replies)
+y_encoded_test = test_df["encoded_sentiment"].values
+
+with open("X_test.bin", "wb") as f:
+    pickle.dump(X_encoded_test, f)
+
+with open("y_test.bin", "wb") as f:
+    pickle.dump(y_encoded_test, f)
+
+print(f"Train dataset size: {X_train.shape[0]}")
+print(f"Validation dataset size: {X_val.shape[0]}")
+print(f"Test dataset size: {X_encoded_test.shape[0]}")

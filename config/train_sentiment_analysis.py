@@ -2,37 +2,35 @@
 # good for debugging and playing on macbooks and such
 
 out_dir = 'out-sentiment-analysis'
-eval_interval = 250  # keep frequent because we'll overfit
+eval_interval = 100  # decreased to prevent overfitting
 eval_iters = 200
-log_interval = 50  # don't print too often
+log_interval = 50 
 
-# we expect to overfit on this small dataset, so only save when val improves
 always_save_checkpoint = False
 
-wandb_log = True  # override via command line if you like
+wandb_log = True
 wandb_project = 'sentiment-analysis'
 wandb_run_name = 'mini-gpt-train'
 
 dataset = 'customer_service'
 gradient_accumulation_steps = 1
-batch_size = 64
-block_size = 256  # context of up to 256 previous characters
-#variables related to classifying task
-sentiment_classifier = True
+batch_size = 8
+block_size = 256
 
-# baby GPT model :)
+sentiment_classifier = True # it will change the model implementation
+
 n_layer = 6
 n_head = 6
 n_embd = 384
 dropout = 0.2
 
-learning_rate = 1e-3  # with baby networks can afford to go a bit higher
+learning_rate = 1e-4 # decreased since dataset is small
 max_iters = 2000
-lr_decay_iters = 2000  # make equal to max_iters usually
-min_lr = 1e-4  # learning_rate / 10 usually
-beta2 = 0.99  # make a bit bigger because number of tokens per iter is small
+lr_decay_iters = 2000 
+min_lr = 1e-5  # learning_rate / 10 usually
+beta2 = 0.99 
 
-warmup_iters = 100  # not super necessary potentially
+warmup_iters = 100
 
 # on macbook also add
 # device = 'cpu'  # run on cpu only
