@@ -21,20 +21,19 @@ chars = sorted(list(set(full_text)))  # Get unique characters
 stoi = { ch:i for i,ch in enumerate(chars) }  # Char to index map
 itos = { i:ch for i,ch in enumerate(chars) }  # Index to char map
 
-# Function to extract the last 3 customer replies
+# Function to extract all the replies except for the last one
 def get_customer_replies(conversation):
     turns = re.split(r'\r\n\r\n', conversation)  # Split conversation into turns
     customer_replies = [turn.replace("Customer:", "").strip() for turn in turns if turn.startswith("Customer:")]  # Remove "Customer:" and extra spaces
     last_n_replies = customer_replies[0:-1]  # Get the replies excluding the last reply
     return " ".join(last_n_replies)  # Join them into one text block
 
-# Apply function to extract last 3 customer replies
+# Apply function to extract customer replies except for the last one
+# Note: Last reply usually contains phrases like "Goodbye", therefore it is better to not include it
 df["X"] = df["conversation"].apply(lambda x: get_customer_replies(x))
 df = df[df["X"].apply(len) > 0]
 test_df["X"] = test_df["conversation"].apply(lambda x: get_customer_replies(x))
 test_df = test_df[test_df["X"].apply(len) > 0]
-
-
 
 # Keep only the relevant columns (X and customer_sentiment as y)
 df = df[["X", "customer_sentiment"]]
@@ -95,6 +94,13 @@ with open("X_test.bin", "wb") as f:
 
 with open("y_test.bin", "wb") as f:
     pickle.dump(y_encoded_test, f)
+
+#Save the sentiment - int encodings to use later
+meta = {
+    'sentiment_to_int': sentiment_to_int,
+}
+with open(os.path.join(os.path.dirname(__file__), 'meta.pkl'), 'wb') as f:
+    pickle.dump(meta, f)
 
 print(f"Train dataset size: {X_train.shape[0]}")
 print(f"Validation dataset size: {X_val.shape[0]}")
