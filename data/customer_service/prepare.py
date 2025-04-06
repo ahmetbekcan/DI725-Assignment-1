@@ -98,6 +98,9 @@ with open("y_test.bin", "wb") as f:
 #Save the sentiment - int encodings to use later
 meta = {
     'sentiment_to_int': sentiment_to_int,
+    'vocab_size' : len(chars),
+    'itos': itos,
+    'stoi': stoi
 }
 with open(os.path.join(os.path.dirname(__file__), 'meta.pkl'), 'wb') as f:
     pickle.dump(meta, f)
