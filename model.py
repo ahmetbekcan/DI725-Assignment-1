@@ -188,7 +188,7 @@ class GPT(nn.Module):
 
         if targets is not None:
             # if we are given some desired targets also calculate the loss
-            #compute the average across sequence lenght dimension to reduce the dimensions to (b,n_embd)
+            # compute the average across sequence lenght dimension to reduce the dimensions to (b,n_embd)
             if (self.config.sentiment_classifier):
                 x = x.mean(dim=1) #(b,n_embd)
 
@@ -217,7 +217,7 @@ class GPT(nn.Module):
         assert model_type in {'gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl'}
         override_args = override_args or {} # default to empty dict
         # only dropout can be overridden see more notes below
-        assert all(k == 'dropout' for k in override_args)
+        assert all(k == 'dropout' or k == 'sentiment_classifier' for k in override_args)
         from transformers import GPT2LMHeadModel
         print("loading weights from pretrained gpt: %s" % model_type)
 
@@ -236,6 +236,9 @@ class GPT(nn.Module):
         if 'dropout' in override_args:
             print(f"overriding dropout rate to {override_args['dropout']}")
             config_args['dropout'] = override_args['dropout']
+        if 'sentiment_classifier' in override_args:
+            print(f"model is loaded with sentiment classifier is {override_args['sentiment_classifier']}")
+            config_args['sentiment_classifier'] = override_args['sentiment_classifier']
         # create a from-scratch initialized minGPT model
         config = GPTConfig(**config_args)
         model = GPT(config)
@@ -263,6 +266,8 @@ class GPT(nn.Module):
                     sd[k].copy_(sd_hf[k].t())
             else:
                 # vanilla copy over the other parameters
+                if (k.startswith('lm_head') and model.config.sentiment_classifier):
+                    continue
                 assert sd_hf[k].shape == sd[k].shape
                 with torch.no_grad():
                     sd[k].copy_(sd_hf[k])

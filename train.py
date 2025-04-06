@@ -112,6 +112,8 @@ device_type = 'cuda' if 'cuda' in device else 'cpu' # for later use in torch.aut
 # note: float16 data type will automatically use a GradScaler
 ptdtype = {'float32': torch.float32, 'bfloat16': torch.bfloat16, 'float16': torch.float16}[dtype]
 ctx = nullcontext() if device_type == 'cpu' else torch.amp.autocast(device_type=device_type, dtype=ptdtype)
+
+# For sentiment classifcation, custom data loaders are initialized so that get_batch() function can be used in the same way
 sentiment_train_iterator = None
 sentiment_val_iterator = None
 if (sentiment_classifier):
@@ -150,24 +152,24 @@ def get_batch(split):
 iter_num = 0
 best_val_loss = 1e9
 
+vocab_size = None
+meta_vocab_size = None
 # attempt to derive vocab_size from the dataset
 meta_path = os.path.join(data_dir, 'meta.pkl')
-meta_sent_to_int = None
 if os.path.exists(meta_path):
     with open(meta_path, 'rb') as f:
         meta = pickle.load(f)
-    meta_sent_to_int = meta['sentiment_to_int']
-    print(f"sentiment to int = \n {meta_sent_to_int}")
-
+    meta_vocab_size = meta['vocab_size']
+ 
+vocab_size = meta_vocab_size if meta_vocab_size is not None else 50304
 # model init
 model_args = dict(n_layer=n_layer, n_head=n_head, n_embd=n_embd, block_size=block_size,
-                  bias=bias, vocab_size=None, dropout=dropout,
+                  bias=bias, vocab_size=vocab_size, dropout=dropout,
                   sentiment_classifier=sentiment_classifier) # start with model_args from command line
 if init_from == 'scratch':
     # init a new model from scratch
     print("Initializing a new model from scratch")
     # determine the vocab size we'll use for from-scratch training
-    model_args["vocab_size"]=50304
     gptconf = GPTConfig(**model_args)
     model = GPT(gptconf)
 elif init_from == 'resume':
@@ -197,6 +199,7 @@ elif init_from.startswith('gpt2'):
     print(f"Initializing from OpenAI GPT-2 weights: {init_from}")
     # initialize from OpenAI GPT-2 weights
     override_args = dict(dropout=dropout)
+    override_args['sentiment_classifier'] = sentiment_classifier
     model = GPT.from_pretrained(init_from, override_args)
     # read off the created config params, so we can store them into checkpoint correctly
     for k in ['n_layer', 'n_head', 'n_embd', 'block_size', 'bias', 'vocab_size']:
